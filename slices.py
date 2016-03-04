@@ -6,6 +6,7 @@ import copy
 import os
 from random import shuffle
 
+# Using the pillow fork of PIL.
 from PIL import Image
 
 
