@@ -26,7 +26,7 @@ def main():
 
     # Composite width = width of all images, plus padding on either side.
     width = sum(image.width for image in resized_images) + (
-        2 * padding * len(resized_images))
+        padding * (len(resized_images) + 1))
 
     composite = Image.new("RGB", (width, smallest_height + 2 * padding),
                           color=(255, 255, 255))
@@ -80,7 +80,7 @@ def paste_images(images, composite, padding):
     x = padding
     for image in images:
         composite.paste(image, (x, padding))
-        x += image.width + padding * 2
+        x += image.width + padding
 
 
 if __name__ == "__main__":
