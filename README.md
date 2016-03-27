@@ -7,8 +7,8 @@ Randomly search Google Image Search for three results and build a triptych. Can 
 ![chicken bones, lumberjack, light up dance floor](./examples/triptych2.jpg)
 _chicken bones, lumberjack, light up dance floor_
 
-![dough, manky, noodles](./examples/triptych.jpg)
-_dough, manky, noodles_
+![stinky, donkey, noodles](./examples/triptych.jpg)
+_stinky, donkey, noodles_
 
 ## slices
 Slice an image into vertical bands and randomly reassemble. 

@@ -34,7 +34,7 @@ def main():
     args = parser.parse_args()
     image = Image.open(os.path.expanduser(args.img))
     num_of_slices = int(args.slices)
-    chop_size = image.size[0] / num_of_slices
+    chop_size = int(round(image.size[0] / float(num_of_slices)))
 
     output_image = slice_image(image, num_of_slices, chop_size)
 

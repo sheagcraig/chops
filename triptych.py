@@ -83,7 +83,7 @@ def main():
     triptych = make_triptych(images, args.padding)
 
     if args.ofile:
-        triptych.save(os.path.expanduser(args.ofile) + ".jpg")
+        triptych.save(os.path.expanduser(args.ofile))
     else:
         cache = os.path.expanduser(
             "~/Library/Caches/com.github.sheagcraig.chops")
