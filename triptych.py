@@ -80,28 +80,17 @@ def main():
         queries = args.search[0:3]
 
     images = get_images(queries, google_image_search)
-
-    smallest_height = min(image.height for image in images)
-
-    resized_images = resize_images(images, smallest_height)
-
-    padding = int(args.padding * smallest_height)
-
-    # Composite width = width of all images, plus padding on either side.
-    width = sum(image.width for image in resized_images) + (
-        padding * (len(resized_images) + 1))
-
-    composite = Image.new("RGB", (width, smallest_height + 2 * padding),
-                          color=(255, 255, 255))
-
-    paste_images(resized_images, composite, padding)
-
-    composite.filter(ImageFilter.UnsharpMask(0.4, 150))
+    triptych = make_triptych(images, args.padding)
 
     if args.ofile:
-        composite.save(os.path.expanduser(args.ofile) + ".jpg")
+        triptych.save(os.path.expanduser(args.ofile) + ".jpg")
     else:
-        composite.show()
+        cache = os.path.expanduser(
+            "~/Library/Cache/com.github.sheagcraig.chops")
+        if not os.path.exists(cache):
+            os.makedirs(cache)
+        triptych.save(os.path.join(cache, "last_triptych.jpg"))
+        triptych.show()
 
 
 def get_argparser():
@@ -164,6 +153,29 @@ def get_images(queries, google_image_search):
         images.append(image)
 
     return images
+
+
+def make_triptych(images, padding):
+    """Composite images into a horizontal, unsharpmasked image.
+
+    Args:
+        images (list of Image): Can be of any length (not just 3).
+        padding (number type): Number of pixels to pad around images.
+
+    Returns:
+        composite image, with an unsharp mask filter applied.
+    """
+    smallest_height = min(image.height for image in images)
+    resized_images = resize_images(images, smallest_height)
+    padding = int(padding * smallest_height)
+    # Composite width = width of all images, plus padding on either side.
+    width = sum(image.width for image in resized_images) + (
+        padding * (len(resized_images) + 1))
+    composite = Image.new("RGB", (width, smallest_height + 2 * padding),
+                          color=(255, 255, 255))
+    paste_images(resized_images, composite, padding)
+    composite.filter(ImageFilter.UnsharpMask(0.4, 150))
+    return composite
 
 
 def resize_images(images, smallest_height):
