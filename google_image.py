@@ -1,15 +1,29 @@
 #!/usr/bin/python
 
 
-import io
-# TODO: Might not be needed.
-# import json
+# Copyright (C) 2016 Shea G Craig <shea.craig@sas.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Using the pillow fork of PIL.
-from PIL import Image, ImageFilter
+
+"""Python module to perform Google Custom Search Engine Image Searches"""
+
+
 import requests
 
 
+# pylint: disable=too-few-public-methods
 class ImageSize(object):
     """Defines acceptable size parameters."""
     huge = "huge"
@@ -36,6 +50,8 @@ class SafeMode(object):
     medium = "medium "
     off = "off"
 
+# pylint: enable=too-few-public-methods
+
 
 class GoogleImageSearch(object):
     """Class for searching Google Images.
@@ -50,7 +66,7 @@ class GoogleImageSearch(object):
     base_url = "https://www.googleapis.com/customsearch/v1"
 
     def __init__(self, cx, key):
-        self.cx = cx
+        self.cx = cx  # pylint: disable=invalid-name
         self.key = key
         self.pages = []
         self.page_index = 1
@@ -116,7 +132,7 @@ class GoogleImageSearch(object):
         if not self.query:
             return
         self.page_index += 10
-        self._search(self.page_index)
+        self._search()
 
     def links(self):
         """Return the links for all found images."""
@@ -128,12 +144,8 @@ class GoogleImageSearch(object):
         return [item for response in self.pages for item in response["items"]]
 
 
-# Example after doing gis.search("Tacos")
-# for link in [item["link"] for item in items]:
-#     PIL.Image.open(io.BytesIO(requests.get(link).content)).show()
-
-
 def main():
+    """Run tests."""
     pass
 
 

@@ -1,8 +1,26 @@
 #!/usr/bin/python
 
 
+# Copyright (C) 2016 Shea G Craig <shea.craig@sas.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+"""Generate a random triptych from random or supplied search terms."""
+
+
 import argparse
-import copy
 import io
 import os
 import plistlib
@@ -24,22 +42,33 @@ class Words(object):
             self.words = word_doc.read().splitlines()
 
     def get_random_word(self):
+        """Return a random word."""
         return random.choice(self.words)
 
     def get_random_words(self, number):
-        return [random.choice(words) for _ in xrange(number)]
+        """Return a list of 'number' random words."""
+        return [random.choice(self.words) for _ in xrange(number)]
+
+    def random_words_iterator(self, number):
+        """Return an iterator of 'number' random words."""
+        counter = 0
+        while counter < number:
+            yield random.choice(self.words)
+            counter += 1
 
 
-# TODO: Pyiint, docs, license.
 def main():
+    """Make a triptych."""
     parser = get_argparser()
     args = parser.parse_args()
 
     config_file = os.path.expanduser("~/.google_image_search")
     if os.path.exists(config_file):
         prefs = plistlib.readPlist(config_file)
+        # pylint: disable=invalid-name
         cx = prefs.get("CX")
         key = prefs.get("KEY")
+        # pylint: enable=invalid-name
     else:
         sys.exit("Please create a '%s' plist file with keys CX and KEY." %
                  config_file)
@@ -50,6 +79,59 @@ def main():
     if args.search:
         queries = args.search[0:3]
 
+    images = get_images(queries, google_image_search)
+
+    smallest_height = min(image.height for image in images)
+
+    resized_images = resize_images(images, smallest_height)
+
+    padding = int(args.padding * smallest_height)
+
+    # Composite width = width of all images, plus padding on either side.
+    width = sum(image.width for image in resized_images) + (
+        padding * (len(resized_images) + 1))
+
+    composite = Image.new("RGB", (width, smallest_height + 2 * padding),
+                          color=(255, 255, 255))
+
+    paste_images(resized_images, composite, padding)
+
+    composite.filter(ImageFilter.UnsharpMask(0.4, 150))
+
+    if args.ofile:
+        composite.save(os.path.expanduser(args.ofile) + ".jpg")
+    else:
+        composite.show()
+
+
+def get_argparser():
+    """Return an ArgumentParser configured for this app."""
+    desc = "Generate a triptych from random Google image search results."
+    parser = argparse.ArgumentParser(description=desc)
+    arg_help = ("Search using this search term. May be specified up to three "
+                "times.")
+    parser.add_argument("-s", "--search", help=arg_help, nargs="*")
+    parser.add_argument("-p", "--padding", help="Amount of padding, as a "
+                        "percentage (float between 0 and 1), to all images in "
+                        "the final composite. Default is ().", default=0.2)
+    parser.add_argument("-o", "--ofile", help="Path to save image.")
+    return parser
+
+
+def get_images(queries, google_image_search):
+    """Get three random images.
+
+    If results are not found for the provided queries, will get
+    random words from the system dictionary until three images are
+    downloaded.
+
+    Args:
+        queries (list of str): Search terms.
+        google_image_search (GoogleImageSearch)
+
+    Returns:
+        List of 3 PIL Image objects.
+    """
     words = Words()
     images = []
     while len(images) < 3:
@@ -81,41 +163,7 @@ def main():
 
         images.append(image)
 
-    smallest_height = min(image.height for image in images)
-
-    resized_images = resize_images(images, smallest_height)
-
-    padding = int(args.padding * smallest_height)
-
-    # Composite width = width of all images, plus padding on either side.
-    width = sum(image.width for image in resized_images) + (
-        padding * (len(resized_images) + 1))
-
-    composite = Image.new("RGB", (width, smallest_height + 2 * padding),
-                        color=(255, 255, 255))
-
-    paste_images(resized_images, composite, padding)
-
-    composite.filter(ImageFilter.UnsharpMask(0.4, 150))
-
-    if args.ofile:
-        composite.save(os.path.expanduser(args.ofile) + ".jpg")
-    else:
-        composite.show()
-
-
-def get_argparser():
-    """Return an ArgumentParser configured for this app."""
-    desc = "Generate a triptych from random Google image search results."
-    parser = argparse.ArgumentParser(description=desc)
-    arg_help = ("Search using this search term. May be specified up to three "
-                "times.")
-    parser.add_argument("-s", "--search", help=arg_help, nargs="*")
-    parser.add_argument("-p", "--padding", help="Amount of padding, as a "
-                        "percentage (float between 0 and 1), to all images in "
-                        "the final composite. Default is ().", default=0.2)
-    parser.add_argument("-o", "--ofile", help="Path to save image.")
-    return parser
+    return images
 
 
 def resize_images(images, smallest_height):
@@ -131,10 +179,10 @@ def resize_images(images, smallest_height):
 
 def paste_images(images, composite, padding):
     """Paste a list of images into a composite, with padding."""
-    x = padding
+    x = padding  # pylint: disable=invalid-name
     for image in images:
         composite.paste(image, (x, padding))
-        x += image.width + padding
+        x += image.width + padding  # pylint: disable=invalid-name
 
 
 if __name__ == "__main__":
