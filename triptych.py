@@ -86,7 +86,7 @@ def main():
         triptych.save(os.path.expanduser(args.ofile) + ".jpg")
     else:
         cache = os.path.expanduser(
-            "~/Library/Cache/com.github.sheagcraig.chops")
+            "~/Library/Caches/com.github.sheagcraig.chops")
         if not os.path.exists(cache):
             os.makedirs(cache)
         triptych.save(os.path.join(cache, "last_triptych.jpg"))
